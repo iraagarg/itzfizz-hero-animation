@@ -80,7 +80,7 @@ lib/
   gsap.ts                 registers GSAP plugins once
   stats.ts                stat card data
   assetPath.ts            adds the GitHub Pages basePath to /public assets
-public/car.svg            hand-built top-down car illustration
+public/car.png            top-down car image (background removed, rotated, shadow baked in)
 .github/workflows/deploy.yml
 ```
 
@@ -107,6 +107,6 @@ Three settings make the static export work on GitHub Pages:
 
 ## Credits
 
-Inspired by the [car scroll animation reference](https://paraschaturvedi.github.io/car-scroll-animation) provided with the assignment. Car illustration drawn from scratch as an SVG.
+Inspired by the [car scroll animation reference](https://paraschaturvedi.github.io/car-scroll-animation) provided with the assignment. The top-down car is a free PNG. Its baked-in checkerboard background was removed, it was rotated to face the direction of travel, and a soft shadow was baked in so the moving car needs no CSS filter.
 
 Built by **Iraa Garg** ([github.com/iraagarg](https://github.com/iraagarg)).

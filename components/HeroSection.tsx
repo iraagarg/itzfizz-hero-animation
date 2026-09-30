@@ -246,13 +246,13 @@ export default function HeroSection() {
           >
             <div data-car-body data-intro className="size-full">
               <Image
-                src={assetPath("/car.svg")}
-                alt="Top view of a red sports car driving along the road"
-                width={440}
-                height={200}
+                src={assetPath("/car.png")}
+                alt="Top view of a red car driving along the road"
+                width={739}
+                height={336}
                 preload
                 draggable={false}
-                className="size-full select-none"
+                className="size-full object-contain select-none"
               />
             </div>
           </div>
