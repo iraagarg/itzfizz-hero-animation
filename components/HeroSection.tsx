@@ -247,9 +247,9 @@ export default function HeroSection() {
             <div data-car-body data-intro className="size-full">
               <Image
                 src={assetPath("/car.png")}
-                alt="Top view of a red car driving along the road"
-                width={739}
-                height={336}
+                alt="Top view of an orange McLaren sports car driving along the road"
+                width={1023}
+                height={465}
                 preload
                 draggable={false}
                 className="size-full object-contain select-none"
