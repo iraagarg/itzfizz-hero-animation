@@ -15,16 +15,16 @@ Built as the Web Development Internship assignment for **Itzfizz Digital**.
 
 ## Features
 
-- **Load intro:** one GSAP timeline, about 2 seconds long.
+- **Load intro:** about 2 seconds of CSS keyframe animation that starts on the very first paint, with no waiting for JavaScript.
   - The headline letters stagger in with a fade, rise and blur.
   - The car slides in from off-screen.
-  - The four stat cards animate in one by one while their numbers count up from 0.
+  - The four stat cards animate in one by one while their numbers count up from 0, also in pure CSS, using an animatable `@property` integer.
   - A "Scroll" hint appears.
 - **Scroll-driven drive:** the hero is pinned while you scroll 1.5 screen heights.
   - The car's position is tied to scroll progress, not a timer.
   - A numeric `scrub` smooths the motion.
   - Lenis adds smooth scrolling on top.
-- **Green trail:** follows the car exactly, using `scaleX` rather than `width`.
+- **Green trail:** follows the car exactly, moved with `translateX` rather than by changing `width`.
 - **Letter reveal:** each letter turns from an outline to solid once the car has passed it, and reverses when you scroll back up.
 - **Details that make it feel alive:** a slight steering tilt based on scroll speed, a small suspension bounce, and parallax on the stat cards.
 - **Responsive:** tested at 360, 390, 768, 1024, 1280, 1440 and 1920 px wide.
@@ -42,24 +42,25 @@ Built as the Web Development Internship assignment for **Itzfizz Digital**.
 |---|---|
 | Framework | Next.js 16 (App Router, static export), React 19, TypeScript |
 | Styling | Tailwind CSS 4 |
-| Animation | GSAP 3 + ScrollTrigger, `@gsap/react` (`useGSAP`) |
+| Animation | GSAP 3 + ScrollTrigger and `@gsap/react` (`useGSAP`) for scrolling; CSS keyframes for the load intro |
 | Smooth scroll | Lenis, driven by GSAP's ticker |
 | Font | Space Grotesk via `next/font` (self-hosted, no layout shift) |
 | Hosting | GitHub Pages via GitHub Actions |
 
 ## How the animation works
 
-All the animation code is in [`components/HeroSection.tsx`](components/HeroSection.tsx).
+The scroll animation is in [`components/HeroSection.tsx`](components/HeroSection.tsx). The load intro is in [`app/globals.css`](app/globals.css).
 
-1. **Intro timeline.** A single `gsap.timeline()` runs when the component mounts and animates the headline, the car, the cards, the counters and the hint. CSS hides these elements until the timeline starts, so nothing flashes on load.
+1. **Load intro (CSS).** Keyframe animations fade and rise the headline letters, slide the car in, bring in the cards one by one and count the numbers up. Each element gets a stagger index (`--i`), and the easing curves match GSAP's `power3.out` and `expo.out`. The intro is CSS rather than a GSAP timeline because a GSAP intro can't start until React, Next.js and GSAP have all downloaded and hydrated. On a slow mobile connection that left the headline blank for 3.7 seconds. The CSS intro starts about 0.1 seconds after first paint. It only animates `transform` and `opacity`, which the browser runs off the main thread, so hydration can't make it stutter.
 2. **Scroll timeline.** A second timeline is attached to a ScrollTrigger with `pin: true` and `scrub: 1`. It animates one number, `drive.p`, from 0 to 1. Because of the scrub, `drive.p` catches up to the scroll position over about a second, and that gives the motion its easing.
-3. **Rendering from progress.** On every update, the car's x position and the trail's `scaleX` are worked out from `drive.p` and written with `gsap.quickSetter`. So each frame only changes `transform` values.
+3. **Rendering from progress.** On every update, the car's x position and the trail's x position are worked out from `drive.p` and written with `gsap.quickSetter`. So each frame only changes `transform` values. CSS gives the car and trail the same starting positions before JavaScript runs, so nothing jumps when GSAP takes over.
 4. **Letter reveal.** The right edge of every letter is cached. When the car's center passes an edge, a short tween fades that letter from outline to solid. The tween only fires when the letter's state actually changes, and it runs in reverse when you scroll back.
 5. **Stat cards.** They are inside the same scroll timeline, and each moves at its own parallax speed.
 
 ### Performance decisions
 
 - **Only `transform` and `opacity` are animated.** The blur is the one exception, and it runs only during the intro.
+- **The intro doesn't wait for JavaScript.** See point 1 above. The car image is a 43 KB WebP, down from a 184 KB PNG, so it doesn't compete with the scripts for bandwidth.
 - **No layout reads while scrolling.** Road width, car width and letter positions are measured once. They are measured again only on ScrollTrigger's `refresh` event, which covers resizing, rotating the device and fonts finishing loading. That event fires after pins have been re-applied at the new size, so the car, trail and letters always use one consistent set of measurements.
 - **The layout can never overflow.** CSS custom properties size everything from the car's width (`--car-w`, `--headline-inset`, `--headline-size`), so the headline always fits in the part of the road the car doesn't cover at its start or end.
 - **No duplicate animations.** Everything is created inside `useGSAP` and `gsap.matchMedia()`, so React Strict Mode double-mounts and hot reloads clean up properly.
@@ -70,9 +71,9 @@ All the animation code is in [`components/HeroSection.tsx`](components/HeroSecti
 app/
   layout.tsx              fonts, metadata, Open Graph
   page.tsx                page composition
-  globals.css             Tailwind theme and hero sizing variables
+  globals.css             Tailwind theme, hero sizing variables, CSS load intro
 components/
-  HeroSection.tsx         hero markup, intro and scroll animations
+  HeroSection.tsx         hero markup and GSAP scroll animation
   StatCard.tsx            one statistic card
   SmoothScroll.tsx        Lenis setup, synced with ScrollTrigger
   ClosingSection.tsx      section after the hero, plus footer
@@ -80,7 +81,7 @@ lib/
   gsap.ts                 registers GSAP plugins once
   stats.ts                stat card data
   assetPath.ts            adds the GitHub Pages basePath to /public assets
-public/car.png            top-down McLaren 720S (shadow baked in, 2.2:1 frame)
+public/car.webp           top-down McLaren 720S (43 KB WebP, shadow baked in, 2.2:1 frame)
 .github/workflows/deploy.yml
 ```
 

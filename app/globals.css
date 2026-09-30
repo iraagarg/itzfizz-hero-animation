@@ -46,10 +46,98 @@ body {
   -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.3);
 }
 
-/* Hidden until the GSAP intro reveals them, so there is no flash on load. */
+/*
+ * Load intro. Pure CSS, so it starts on first paint rather than after the JS
+ * bundle downloads and hydrates, and runs on the compositor (transform and
+ * opacity) so hydration can't make it stutter. --i is each element's stagger
+ * index. Easings match GSAP's power3.out / expo.out / power2.out.
+ */
+:root {
+  --ease-power3-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-expo-out: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-power2-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Animatable integer so the stat numbers can count up without JS. */
+@property --num {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+.intro-count {
+  --num: var(--to);
+  counter-reset: num var(--num);
+}
+.intro-count::after {
+  content: counter(num);
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  [data-intro] {
+  /* Start positions before JS runs; identical to what GSAP computes, so
+     nothing jumps when it takes over. */
+  [data-car] {
+    transform: translateX(calc(var(--car-w) * var(--car-overhang) * -1));
+  }
+  [data-trail] {
+    transform: translateX(calc(var(--car-w) * (0.5 - var(--car-overhang)) - 100%));
+  }
+  .intro-fade-down {
+    animation: intro-fade-down 0.8s var(--ease-power3-out) both;
+  }
+  .intro-letter {
+    animation: intro-letter 0.9s var(--ease-power3-out) both;
+    animation-delay: calc(0.1s + var(--i) * 0.05s);
+  }
+  .intro-car {
+    animation: intro-car 1.3s var(--ease-expo-out) 0.25s both;
+  }
+  .intro-card {
+    animation: intro-card 0.8s var(--ease-power3-out) both;
+    animation-delay: calc(0.55s + var(--i) * 0.12s);
+  }
+  .intro-count {
+    animation: intro-count 1.1s var(--ease-power2-out) both;
+    animation-delay: calc(0.55s + var(--i) * 0.12s);
+  }
+  .intro-fade-up {
+    animation: intro-fade-up 0.6s var(--ease-power3-out) 1.3s both;
+  }
+}
+
+@keyframes intro-fade-down {
+  from {
     opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+@keyframes intro-letter {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+    filter: blur(6px);
+  }
+}
+@keyframes intro-car {
+  from {
+    transform: translateX(-160%);
+  }
+}
+@keyframes intro-card {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.94);
+  }
+}
+@keyframes intro-count {
+  from {
+    --num: 0;
+  }
+}
+@keyframes intro-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
 }
 
@@ -58,9 +146,6 @@ body {
   [data-car] {
     left: auto;
     right: calc(var(--car-w) * var(--car-overhang) * -1);
-  }
-  [data-trail] {
-    transform: none;
   }
   [data-solid] {
     opacity: 1;
