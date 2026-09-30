@@ -1,26 +1,71 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "lenis/dist/lenis.css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --color-track: #d1d1d1;
+  --color-road: #1e1e1e;
+  --color-trail: #45db7d;
+  --color-ink: #111111;
+  --color-night: #121212;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  background: var(--color-night);
+  overflow-x: clip;
+}
+
+/*
+ * Hero sizing. Everything is derived from the car size so the headline always
+ * sits in the stretch of road the car never covers at its start or end.
+ * --car-overhang: fraction of the car that hangs off-screen at start and end.
+ * Mobile/tablet: headline wraps to two rows and the car drives between them.
+ */
+.hero {
+  --car-overhang: 0;
+  --car-h: clamp(52px, 8vw + 20px, 88px);
+  --car-w: calc(var(--car-h) * 2.2);
+  --headline-inset: calc(var(--car-w) / 2 + 1rem);
+  --headline-size: clamp(28px, calc((100vw - 2 * var(--headline-inset)) / 7), 76px);
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    --car-overhang: 0.3;
+    --road-h: clamp(150px, 10vw + 50px, 200px);
+    --car-h: calc(var(--road-h) * 0.72);
+    --headline-inset: calc(var(--car-w) * (1 - var(--car-overhang)) + 1.25rem);
+    --headline-size: min(8rem, calc((100vw - 2 * var(--headline-inset)) / 12));
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Outlined "ghost" letter, visible on the dark road before the car passes. */
+.letter-ghost {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.3);
+}
+
+/* Hidden until the GSAP intro reveals them, so there is no flash on load. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-intro] {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion: skip every animation and show the finished scene. */
+@media (prefers-reduced-motion: reduce) {
+  [data-car] {
+    left: auto;
+    right: calc(var(--car-w) * var(--car-overhang) * -1);
+  }
+  [data-trail] {
+    transform: none;
+  }
+  [data-solid] {
+    opacity: 1;
+  }
+  [data-ghost] {
+    opacity: 0;
+  }
 }
