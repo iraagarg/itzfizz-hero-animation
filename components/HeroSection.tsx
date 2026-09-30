@@ -12,9 +12,6 @@ const WORDS = ["WELCOME", "ITZFIZZ"];
 /** Passes a stagger index to the CSS intro animations (see globals.css). */
 const stagger = (i: number) => ({ "--i": i }) as CSSProperties;
 
-/** How far (in viewport heights) the user scrolls while the hero is pinned. */
-const PIN_DISTANCE = 1.5;
-
 export default function HeroSection() {
   const root = useRef<HTMLElement>(null);
 
@@ -42,8 +39,8 @@ export default function HeroSection() {
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         /* ---------- Layout cache ----------
          * Measured once up front and again after every ScrollTrigger refresh
-         * (resize, orientation change, fonts loaded), once pins have been
-         * re-applied at the new size. Never measured inside onUpdate. */
+         * (resize, orientation change, fonts loaded), once layout has settled
+         * at the new size. Never measured inside onUpdate. */
         const m = { roadW: 1, carW: 0, startX: 0, endX: 0, edges: [] as number[] };
         const measure = () => {
           const roadLeft = road.getBoundingClientRect().left;
@@ -108,18 +105,19 @@ export default function HeroSection() {
         ScrollTrigger.addEventListener("refresh", onRefresh);
 
         /* ---------- Scroll timeline ----------
-         * Pinned for PIN_DISTANCE viewports. The numeric scrub smooths the
-         * playhead towards the scroll position, which gives the easing. */
+         * The track is pinned with CSS position: sticky inside a taller section
+         * (globals.css), not GSAP's pin: pinning would move the track into a
+         * pin-spacer, and moving an element restarts its CSS intro animations.
+         * The drive spans the section's scroll range; the numeric scrub smooths
+         * the playhead towards the scroll position, which gives the easing. */
         gsap
           .timeline({
             defaults: { ease: "none" },
             scrollTrigger: {
-              trigger: track,
+              trigger: root.current,
               start: "top top",
-              end: () => `+=${window.innerHeight * PIN_DISTANCE}`,
-              pin: true,
+              end: "bottom bottom",
               scrub: 1,
-              anticipatePin: 1,
               invalidateOnRefresh: true,
             },
           })
@@ -156,7 +154,7 @@ export default function HeroSection() {
 
   return (
     <section ref={root} className="hero relative">
-      <div data-track className="relative flex h-svh flex-col overflow-hidden bg-track text-ink">
+      <div data-track className="sticky top-0 flex h-svh flex-col overflow-hidden bg-track text-ink">
         <header className="intro-fade-down flex items-center justify-between gap-4 px-4 pt-4 text-xs sm:px-8 sm:pt-6 sm:text-sm"
         >
           <span className="font-bold tracking-[0.3em]">ITZFIZZ</span>

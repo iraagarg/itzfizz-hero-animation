@@ -74,6 +74,11 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* Scroll distance of the drive: the sticky track stays pinned for the
+     extra 150vh. Reduced-motion users get a normal, one-screen hero. */
+  .hero {
+    height: calc(100svh + 150vh);
+  }
   /* Start positions before JS runs; identical to what GSAP computes, so
      nothing jumps when it takes over. */
   [data-car] {
